@@ -1,21 +1,12 @@
 use std::ops;
 
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
-}
-
-impl ops::Neg for Vec3 {
-    type Output = Vec3;
-    fn neg(self) -> Vec3 {
-        Vec3 {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
-    }
 }
 
 impl ops::Index<usize> for Vec3 {
@@ -41,57 +32,22 @@ impl ops::IndexMut<usize> for Vec3 {
     }
 }
 
-impl ops::Add for &Vec3 {
-    type Output = Vec3;
-    fn add(self, other: &Vec3) -> Vec3 {
-        Vec3 {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
+impl_op_ex!(-|v: Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
 
-impl ops::Sub for &Vec3 {
-    type Output = Vec3;
-    fn sub(self, other: &Vec3) -> Vec3 {
-        Vec3 {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
-        }
-    }
-}
+impl_op_ex!(+ |u: Vec3, v: Vec3| -> Vec3 { Vec3::new(u.x + v.x, u.y + v.y, u.z + v.z) });
+impl_op_ex!(+= |u: &mut Vec3, v: Vec3| { u.x += v.x; u.y += v.y; u.z += v.z; });
 
-impl ops::Mul for &Vec3 {
-    type Output = Vec3;
-    // Element-wise multiplication
-    fn mul(self, other: &Vec3) -> Vec3 {
-        Vec3 {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-        }
-    }
-}
+impl_op_ex!(-|u: Vec3, v: Vec3| -> Vec3 { Vec3::new(u.x - v.x, u.y - v.y, u.z - v.z) });
+impl_op_ex!(-= |u: &mut Vec3, v: Vec3| { u.x -= v.x; u.y -= v.y; u.z -= v.z; });
 
-impl ops::Mul<f64> for &Vec3 {
-    type Output = Vec3;
-    fn mul(self, other: f64) -> Vec3 {
-        Vec3 {
-            x: self.x * other,
-            y: self.y * other,
-            z: self.z * other,
-        }
-    }
-}
+// Element-wise multiplication
+impl_op_ex!(*|u: Vec3, v: Vec3| -> Vec3 { Vec3::new(u.x * v.x, u.y * v.y, u.z * v.z) });
 
-impl ops::Div<f64> for &Vec3 {
-    type Output = Vec3;
-    fn div(self, other: f64) -> Vec3 {
-        self * (1.0 / other)
-    }
-}
+impl_op_ex_commutative!(*|v: Vec3, c: f64| -> Vec3 { Vec3::new(v.x * c, v.y * c, v.z * c) });
+impl_op_ex!(*= |v: &mut Vec3, c: f64| { v.x *= c; v.y *= c; v.z *= c; });
+
+impl_op_ex!(/ |v: Vec3, c: f64| -> Vec3 { Vec3::new(v.x / c, v.y / c, v.z / c) });
+impl_op_ex!(/= |v: &mut Vec3, c: f64| { v.x /= c; v.y /= c; v.z /= c; });
 
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
@@ -107,7 +63,7 @@ impl Vec3 {
     }
 
     pub fn unit_vector(&self) -> Vec3 {
-        self / self.length()
+        *self / self.length()
     }
 
     pub fn dot(&self, other: Vec3) -> f64 {

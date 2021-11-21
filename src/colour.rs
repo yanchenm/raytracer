@@ -1,9 +1,23 @@
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+
 use crate::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Colour {
-    channels: Vec3,
+    pub channels: Vec3,
 }
+
+impl_op_ex!(+ |a: Colour, b: Colour| -> Colour {
+    Colour {
+        channels: a.channels + b.channels,
+    }
+});
+
+impl_op_ex_commutative!(*|c: Colour, f: f64| -> Colour {
+    Colour {
+        channels: c.channels * f,
+    }
+});
 
 impl Colour {
     pub fn new(r: f64, g: f64, b: f64) -> Colour {
