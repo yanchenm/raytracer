@@ -1,6 +1,13 @@
 use std::{fs::File, io::BufWriter};
 use std::io::Write;
 
+use indicatif::ProgressBar;
+
+use crate::colour::Colour;
+
+mod vec3;
+mod colour;
+
 fn main() {
     // Image dimensions
     const IMAGE_WIDTH: u32 = 256;
@@ -14,20 +21,15 @@ fn main() {
     let image_header = format!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
     file_buffer.write(image_header.as_bytes()).unwrap();
 
+    let bar = ProgressBar::new((IMAGE_WIDTH * IMAGE_HEIGHT) as u64);
     for j in (0..IMAGE_HEIGHT).rev() {
         for i in 0..IMAGE_WIDTH {
-            let r = i as f64 / (IMAGE_WIDTH - 1) as f64;
-            let g = j as f64 / (IMAGE_HEIGHT - 1) as f64;
-            let b: f64 = 0.25;
-
-            let ir = (r * 255.999) as i32;
-            let ig = (g * 255.999) as i32;
-            let ib = (b * 255.999) as i32;
-
-            let pixel = format!("{} {} {}\n", ir, ig, ib);
-            file_buffer.write(pixel.as_bytes()).unwrap();
+            let pixel = Colour::new(i as f64 / (IMAGE_WIDTH - 1) as f64, j as f64 / (IMAGE_HEIGHT - 1) as f64, 0.25);
+            file_buffer.write(pixel.pixel_string().as_bytes()).unwrap();
+            bar.inc(1);
         }
     }
 
     file_buffer.flush().unwrap();
+    bar.finish();
 }
