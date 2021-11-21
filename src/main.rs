@@ -13,7 +13,23 @@ mod point3;
 mod ray;
 mod vec3;
 
+fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> bool {
+    let center_vec = r.origin() - center;
+
+    // Coefficients of quadratic equation
+    let a = r.direction().dot(r.direction());
+    let b = 2.0 * center_vec.position.dot(r.direction());
+    let c = center_vec.position.dot(center_vec.position) - radius * radius;
+
+    let discriminant = (b * b) - (4.0 * a * c);
+    discriminant > 0.0
+}
+
 fn ray_color(ray: &Ray) -> Colour {
+    if hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, ray) {
+        return Colour::new(1.0, 0.0, 0.0);
+    }
+
     let unit_direction = ray.direction().unit_vector();
     let t = 0.5 * (unit_direction.y + 1.0);
     (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0)
@@ -26,7 +42,7 @@ fn main() {
     let image_height = (image_width as f64 / aspect_ratio) as i32;
 
     // File I/O
-    let file = File::create("output/gradient_blue.ppm").expect("Unable to create file.");
+    let file = File::create("output/simple_sphere.ppm").expect("Unable to create file.");
     let mut file_buffer = BufWriter::new(file);
 
     // Write file header
@@ -53,7 +69,7 @@ fn main() {
 
             let r = Ray::new(
                 origin,
-                (lower_left_corner + u * horizontal + v * vertical - origin).location,
+                (lower_left_corner + u * horizontal + v * vertical - origin).position,
             );
             let pixel_color = ray_color(&r);
 
