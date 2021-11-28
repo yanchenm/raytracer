@@ -13,7 +13,7 @@ mod point3;
 mod ray;
 mod vec3;
 
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> bool {
+fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
     let center_vec = r.origin() - center;
 
     // Coefficients of quadratic equation
@@ -22,12 +22,19 @@ fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> bool {
     let c = center_vec.position.dot(center_vec.position) - radius * radius;
 
     let discriminant = (b * b) - (4.0 * a * c);
-    discriminant > 0.0
+
+    if discriminant < 0.0 {
+        return -1.0;
+    } else {
+        return (-b - discriminant.sqrt()) / (2.0 * a);
+    }
 }
 
 fn ray_color(ray: &Ray) -> Colour {
-    if hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, ray) {
-        return Colour::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, ray);
+    if t > 0.0 {
+        let N = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vector();
+        return 0.5 * Colour::new(N.x + 1.0, N.y + 1.0, N.z + 1.0);
     }
 
     let unit_direction = ray.direction().unit_vector();
@@ -42,7 +49,7 @@ fn main() {
     let image_height = (image_width as f64 / aspect_ratio) as i32;
 
     // File I/O
-    let file = File::create("output/simple_sphere.ppm").expect("Unable to create file.");
+    let file = File::create("output/coloured_sphere.ppm").expect("Unable to create file.");
     let mut file_buffer = BufWriter::new(file);
 
     // Write file header
@@ -69,7 +76,7 @@ fn main() {
 
             let r = Ray::new(
                 origin,
-                (lower_left_corner + u * horizontal + v * vertical - origin).position,
+                lower_left_corner + u * horizontal + v * vertical - origin,
             );
             let pixel_color = ray_color(&r);
 

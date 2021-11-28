@@ -8,16 +8,13 @@ pub struct Point3 {
 }
 
 impl_op_ex_commutative!(+ |p: Point3, v: Vec3| -> Point3 { Point3 { position: p.position + v } });
-impl_op_ex!(-|p: Point3, v: Vec3| -> Point3 {
-    Point3 {
-        position: p.position - v,
-    }
-});
+impl_op_ex!(-|p: Point3, v: Vec3| -> Vec3 { p.position - v });
 impl_op_ex!(-|p: Point3, q: Point3| -> Point3 {
     Point3 {
         position: p.position - q.position,
     }
 });
+impl_op_ex!(-|v: Vec3, p: Point3| -> Vec3 { v - p.position });
 impl_op!(-|p: Point3, q: &Point3| -> Point3 {
     Point3 {
         position: p.position - q.position,
