@@ -2,6 +2,8 @@ use std::ops;
 
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 
+use crate::point3::Point3;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
@@ -28,6 +30,16 @@ impl ops::IndexMut<usize> for Vec3 {
             1 => &mut self.y,
             2 => &mut self.z,
             _ => panic!("Index out of bounds"),
+        }
+    }
+}
+
+impl From<Point3> for Vec3 {
+    fn from(item: Point3) -> Self {
+        Vec3 {
+            x: item.x(),
+            y: item.y(),
+            z: item.z(),
         }
     }
 }
