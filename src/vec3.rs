@@ -56,7 +56,7 @@ impl_op_ex!(-= |u: &mut Vec3, v: Vec3| { u.x -= v.x; u.y -= v.y; u.z -= v.z; });
 // Element-wise multiplication
 impl_op_ex!(*|u: Vec3, v: Vec3| -> Vec3 { Vec3::new(u.x * v.x, u.y * v.y, u.z * v.z) });
 
-impl_op_ex_commutative!(*|v: Vec3, c: f64| -> Vec3 { Vec3::new(v.x * c, v.y * c, v.z * c) });
+impl_op_ex_commutative!(*|v: &Vec3, c: f64| -> Vec3 { Vec3::new(v.x * c, v.y * c, v.z * c) });
 impl_op_ex!(*= |v: &mut Vec3, c: f64| { v.x *= c; v.y *= c; v.z *= c; });
 
 impl_op_ex!(/ |v: Vec3, c: f64| -> Vec3 { Vec3::new(v.x / c, v.y / c, v.z / c) });
@@ -109,6 +109,7 @@ impl Vec3 {
         }
     }
 
+    // Generate a random vector in a unit sphere.
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
             let p = Vec3::random_in_range(-1.0, 1.0);
@@ -117,5 +118,32 @@ impl Vec3 {
             }
             return p;
         }
+    }
+
+    // Generate a random unit vector.
+    pub fn random_unit_vector() -> Vec3 {
+        Vec3::random_in_unit_sphere().unit_vector()
+    }
+
+    // Generate a random vector in the same hemisphere as a given normal vector.
+    pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if in_unit_sphere.dot(*normal) > 0.0 {
+            // The random vector is already in the same hemisphere as normal
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
+    }
+
+    // Return true if the vector is close to zero in all dimensions.
+    pub fn near_zero(&self) -> bool {
+        const THRESHOLD: f64 = 1e-8;
+        self.x.abs() < THRESHOLD && self.y.abs() < THRESHOLD && self.z.abs() < THRESHOLD
+    }
+
+    // Reflect the vector in a surface with the given normal.
+    pub fn reflect(&self, normal: &Vec3) -> Vec3 {
+        *self - (normal * self.dot(*normal) * 2.0)
     }
 }

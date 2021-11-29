@@ -1,22 +1,28 @@
 use crate::{
     hittable::{Hit, Hittable},
+    material::Material,
     point3::Point3,
     vec3::Vec3,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Sphere {
+#[derive(Clone)]
+pub struct Sphere<'a> {
     pub center: Point3,
     pub radius: f64,
+    pub material: &'a dyn Material,
 }
 
-impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
-        Sphere { center, radius }
+impl<'a> Sphere<'a> {
+    pub fn new(center: Point3, radius: f64, material: &'a impl Material) -> Self {
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
-impl Hittable for Sphere {
+impl<'a> Hittable for Sphere<'a> {
     fn hit(&self, r: &crate::ray::Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         let oc = Vec3::from(r.origin() - self.center);
 
@@ -41,9 +47,14 @@ impl Hittable for Sphere {
             }
         }
 
-        let mut hit = Hit::new();
-        hit.p = r.at(root);
-        hit.t = root;
+        let mut hit = Hit {
+            p: r.at(root),
+            t: root,
+            normal: Vec3::new(0.0, 0.0, 0.0),
+            front_face: false,
+            material: self.material,
+        };
+
         let outward_normal = Vec3::from(hit.p - self.center) / self.radius;
         hit.set_face_normal(r, &outward_normal);
 

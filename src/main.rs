@@ -14,10 +14,16 @@ use ray::Ray;
 use sphere::Sphere;
 use vec3::Vec3;
 
+use crate::lambertian::Lambertian;
+use crate::metal::Metal;
+
 mod camera;
 mod colour;
 mod hittable;
 mod hittable_list;
+mod lambertian;
+mod material;
+mod metal;
 mod point3;
 mod ray;
 mod sphere;
@@ -31,13 +37,13 @@ fn ray_colour(ray: &Ray, world: &impl Hittable, depth: i64) -> Colour {
     let hit_res = world.hit(ray, 0.001, INFINITY);
     match hit_res {
         Some(hit) => {
-            let target = hit.p + hit.normal + Vec3::random_in_unit_sphere();
-            return 0.5
-                * ray_colour(
-                    &Ray::new(hit.p, Vec3::from(target - hit.p)),
-                    world,
-                    depth - 1,
-                );
+            let scatter_res = hit.material.scatter(ray, &hit);
+            match scatter_res {
+                Some(scatter) => {
+                    scatter.attenuation * ray_colour(&scatter.scattered, world, depth - 1)
+                }
+                None => Colour::new(0.0, 0.0, 0.0),
+            }
         }
         None => {
             let unit_direction = ray.direction().unit_vector();
@@ -57,8 +63,7 @@ fn main() {
     let max_depth = 50;
 
     // File I/O
-    let file = File::create("output/07-diffuse_sphere_gamma_corrected.ppm")
-        .expect("Unable to create file.");
+    let file = File::create("output/10-metal_spheres.ppm").expect("Unable to create file.");
     let mut file_buffer = BufWriter::new(file);
 
     // Write file header
@@ -66,12 +71,21 @@ fn main() {
     file_buffer.write(image_header.as_bytes()).unwrap();
 
     // World
-    let sphere = Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5);
-    let ground = Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0);
+    let material_ground = Lambertian::new(&Colour::new(0.8, 0.8, 0.0));
+    let material_center = Lambertian::new(&Colour::new(0.7, 0.3, 0.3));
+    let material_left = Metal::new(&Colour::new(0.8, 0.8, 0.8));
+    let material_right = Metal::new(&Colour::new(0.8, 0.6, 0.2));
+
+    let ground = Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0, &material_ground);
+    let left_sphere = Sphere::new(Point3::new(-1.0, 0.0, -1.0), 0.5, &material_left);
+    let center_sphere = Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5, &material_center);
+    let right_sphere = Sphere::new(Point3::new(1.0, 0.0, -1.0), 0.5, &material_right);
 
     let mut world = HittableList::new();
-    world.add(&sphere);
     world.add(&ground);
+    world.add(&left_sphere);
+    world.add(&center_sphere);
+    world.add(&right_sphere);
 
     // Camera
     let camera = Camera::new();

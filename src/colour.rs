@@ -34,6 +34,12 @@ impl_op_ex_commutative!(*|c: Colour, f: f64| -> Colour {
     }
 });
 
+impl_op_ex!(*|a: &Colour, b: &Colour| -> Colour {
+    Colour {
+        channels: a.channels * b.channels,
+    }
+});
+
 impl Colour {
     pub fn new(r: f64, g: f64, b: f64) -> Colour {
         Colour {

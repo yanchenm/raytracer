@@ -1,29 +1,18 @@
+use crate::material::Material;
 use crate::point3::Point3;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Hit {
+#[derive(Clone)]
+pub struct Hit<'a> {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: &'a dyn Material,
 }
 
-impl Hit {
-    pub fn new() -> Self {
-        Hit {
-            p: Point3::new(0.0, 0.0, 0.0),
-            normal: Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            },
-            t: 0.0,
-            front_face: false,
-        }
-    }
-
+impl Hit<'_> {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: &Vec3) {
         self.front_face = r.direction().dot(*outward_normal) < 0.0;
         self.normal = if self.front_face {
