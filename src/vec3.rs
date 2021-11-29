@@ -1,6 +1,7 @@
 use std::ops;
 
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+use rand::Rng;
 
 use crate::point3::Point3;
 
@@ -87,6 +88,34 @@ impl Vec3 {
             x: (self.y * other.z) - (self.z * other.y),
             y: (self.z * other.x) - (self.x * other.z),
             z: (self.x * other.y) - (self.y * other.x),
+        }
+    }
+
+    pub fn random() -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3 {
+            x: rng.gen::<f64>(),
+            y: rng.gen::<f64>(),
+            z: rng.gen::<f64>(),
+        }
+    }
+
+    pub fn random_in_range(min: f64, max: f64) -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3 {
+            x: rng.gen_range(min..max),
+            y: rng.gen_range(min..max),
+            z: rng.gen_range(min..max),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Vec3::random_in_range(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
         }
     }
 }

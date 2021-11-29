@@ -62,8 +62,15 @@ impl Colour {
     }
 
     pub fn write_colour(&self, file: &mut BufWriter<File>, samples_per_pixel: i64) {
+        // Average colour over number of samples and gamma correct for gamma = 2.0
         let scale = 1.0 / samples_per_pixel as f64;
-        let scaled_colour = *self * scale;
+        let scaled_colour = Colour {
+            channels: Vec3 {
+                x: (self.r() * scale).sqrt(),
+                y: (self.g() * scale).sqrt(),
+                z: (self.b() * scale).sqrt(),
+            },
+        };
 
         file.write(scaled_colour.pixel_string().as_bytes()).unwrap();
     }
