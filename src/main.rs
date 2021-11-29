@@ -1,45 +1,37 @@
+use std::f64::INFINITY;
 use std::io::Write;
 use std::{fs::File, io::BufWriter};
 
 use indicatif::ProgressBar;
 
-use crate::colour::Colour;
-use crate::point3::Point3;
-use crate::ray::Ray;
-use crate::vec3::Vec3;
+use colour::Colour;
+use hittable::Hittable;
+use hittable_list::HittableList;
+use point3::Point3;
+use ray::Ray;
+use sphere::Sphere;
+use vec3::Vec3;
 
 mod colour;
+mod hittable;
+mod hittable_list;
 mod point3;
 mod ray;
+mod sphere;
 mod vec3;
 
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
-    let oc = Vec3::from(r.origin() - center);
-
-    // Coefficients of quadratic equation
-    let a = r.direction().length_squared();
-    let half_b = oc.dot(r.direction());
-    let c = oc.length_squared() - (radius * radius);
-
-    let discriminant = (half_b * half_b) - (a * c);
-
-    if discriminant < 0.0 {
-        return -1.0;
-    } else {
-        return (-half_b - discriminant.sqrt()) / a;
+fn ray_color(ray: &Ray, world: &impl Hittable) -> Colour {
+    let hit_res = world.hit(ray, 0.0, INFINITY);
+    match hit_res {
+        Some(hit) => {
+            return 0.5 * (hit.normal + Colour::new(1.0, 1.0, 1.0));
+        }
+        None => {
+            let unit_direction = ray.direction().unit_vector();
+            let t = 0.5 * (unit_direction.y + 1.0);
+            return (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0);
+        }
     }
-}
-
-fn ray_color(ray: &Ray) -> Colour {
-    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, ray);
-    if t > 0.0 {
-        let N = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vector();
-        return 0.5 * Colour::new(N.x + 1.0, N.y + 1.0, N.z + 1.0);
-    }
-
-    let unit_direction = ray.direction().unit_vector();
-    let t = 0.5 * (unit_direction.y + 1.0);
-    (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0)
 }
 
 fn main() {
@@ -49,12 +41,21 @@ fn main() {
     let image_height = (image_width as f64 / aspect_ratio) as i32;
 
     // File I/O
-    let file = File::create("output/coloured_sphere.ppm").expect("Unable to create file.");
+    let file =
+        File::create("output/coloured_sphere_with_ground.ppm").expect("Unable to create file.");
     let mut file_buffer = BufWriter::new(file);
 
     // Write file header
     let image_header = format!("P3\n{} {}\n255\n", image_width, image_height);
     file_buffer.write(image_header.as_bytes()).unwrap();
+
+    // World
+    let sphere = Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5);
+    let ground = Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0);
+
+    let mut world = HittableList::new();
+    world.add(&sphere);
+    world.add(&ground);
 
     // Camera
     let viewport_height = 2.0;
@@ -78,7 +79,7 @@ fn main() {
                 origin,
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
 
             file_buffer
                 .write(pixel_color.pixel_string().as_bytes())

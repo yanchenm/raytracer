@@ -44,7 +44,7 @@ impl From<Point3> for Vec3 {
     }
 }
 
-impl_op_ex!(-|v: Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
+impl_op_ex!(-|v: &Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
 
 impl_op_ex!(+ |u: Vec3, v: Vec3| -> Vec3 { Vec3::new(u.x + v.x, u.y + v.y, u.z + v.z) });
 impl_op_ex!(+= |u: &mut Vec3, v: Vec3| { u.x += v.x; u.y += v.y; u.z += v.z; });

@@ -13,6 +13,12 @@ impl_op_ex!(+ |a: Colour, b: Colour| -> Colour {
     }
 });
 
+impl_op_ex_commutative!(+ |c: Colour, v: Vec3| -> Colour {
+    Colour {
+        channels: c.channels + v
+    }
+});
+
 impl_op_ex_commutative!(*|c: Colour, f: f64| -> Colour {
     Colour {
         channels: c.channels * f,
