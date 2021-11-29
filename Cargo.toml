@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 indicatif = "0.16.2"
 auto_ops = "0.3.0"
+rand = "0.8.4"

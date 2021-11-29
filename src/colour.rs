@@ -1,3 +1,8 @@
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+};
+
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 
 use crate::vec3::Vec3;
@@ -11,6 +16,10 @@ impl_op_ex!(+ |a: Colour, b: Colour| -> Colour {
     Colour {
         channels: a.channels + b.channels,
     }
+});
+
+impl_op_ex!(+= |a: &mut Colour, b: Colour| {
+    a.channels += b.channels
 });
 
 impl_op_ex_commutative!(+ |c: Colour, v: Vec3| -> Colour {
@@ -45,10 +54,17 @@ impl Colour {
     }
 
     pub fn pixel_string(&self) -> String {
-        let r = (self.r() * 255.999) as i32;
-        let g = (self.g() * 255.999) as i32;
-        let b = (self.b() * 255.999) as i32;
+        let r = (256.0 * self.r().clamp(0.0, 0.999)) as i64;
+        let g = (256.0 * self.g().clamp(0.0, 0.999)) as i64;
+        let b = (256.0 * self.b().clamp(0.0, 0.999)) as i64;
 
         format!("{} {} {}\n", r, g, b)
+    }
+
+    pub fn write_colour(&self, file: &mut BufWriter<File>, samples_per_pixel: i64) {
+        let scale = 1.0 / samples_per_pixel as f64;
+        let scaled_colour = *self * scale;
+
+        file.write(scaled_colour.pixel_string().as_bytes()).unwrap();
     }
 }
