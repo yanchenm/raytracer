@@ -63,7 +63,7 @@ fn main() {
     let max_depth = 50;
 
     // File I/O
-    let file = File::create("output/10-metal_spheres.ppm").expect("Unable to create file.");
+    let file = File::create("output/11-fuzzy_metal_spheres.ppm").expect("Unable to create file.");
     let mut file_buffer = BufWriter::new(file);
 
     // Write file header
@@ -73,8 +73,8 @@ fn main() {
     // World
     let material_ground = Lambertian::new(&Colour::new(0.8, 0.8, 0.0));
     let material_center = Lambertian::new(&Colour::new(0.7, 0.3, 0.3));
-    let material_left = Metal::new(&Colour::new(0.8, 0.8, 0.8));
-    let material_right = Metal::new(&Colour::new(0.8, 0.6, 0.2));
+    let material_left = Metal::new(&Colour::new(0.8, 0.8, 0.8), 0.3);
+    let material_right = Metal::new(&Colour::new(0.8, 0.6, 0.2), 1.0);
 
     let ground = Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0, &material_ground);
     let left_sphere = Sphere::new(Point3::new(-1.0, 0.0, -1.0), 0.5, &material_left);
